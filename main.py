@@ -95,3 +95,28 @@ if __name__ == '__main__':
         wait_minutes = random.randint(MIN_INTERVAL_MIN, MAX_INTERVAL_MIN)
         print(f"Cycle finished — sleeping for {wait_minutes} minutes.")
         time.sleep(wait_minutes * 60)
+
+
+import threading
+import os
+from flask import Flask
+
+# --------- Fake server for Render Web Service ----------
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_flask():
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
+# --------- Start bot + Flask together ----------
+def start_services():
+    # Bot को अलग thread में चलाओ
+    threading.Thread(target=main_bot_function, daemon=True).start()  # यहाँ main_bot_function को अपने bot start करने वाले function से replace करो
+    run_flask()
+
+if __name__ == "__main__":
+    start_services()
