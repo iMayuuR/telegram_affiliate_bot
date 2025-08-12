@@ -1,20 +1,22 @@
-# Telegram Affiliate Bot
+# EarnKaro Telegram Bot
 
-This bot scrapes EarnKaro top-selling products, converts them to Amazon/Flipkart affiliate links, and posts them to your Telegram channel automatically at random intervals.
+This bot scrapes top deals from EarnKaro and sends them to a Telegram chat at random intervals (20–50 minutes).  
+Deployable on [Render](https://render.com) with no manual input.
 
-## Deployment on Render
+## Steps to Deploy on Render
 
-1. Create a new **Web Service** on [Render](https://render.com/).
-2. Upload all files from this ZIP.
-3. Set **Environment** to Python 3.
-4. In **Start Command**, set:
-```
-python main.py
-```
-5. Deploy. The bot will start running automatically.
+1. Create a **new Web Service** on Render.
+2. Connect your GitHub repo OR upload this ZIP directly.
+3. In **Environment Variables**, add:
+   - `TELEGRAM_BOT_TOKEN` → Your bot token from BotFather.
+   - `TELEGRAM_CHAT_ID` → Your chat/group ID.
+4. Set:
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `python main.py`
+5. Click **Deploy**.
 
-No manual input is required — all credentials are pre-configured.
+Bot will run forever and send updates every 20–50 minutes.
 
----
-
-**Note:** Use a free tier for small scale, upgrade if you want 24/7 uptime.
+## Requirements
+- Python 3.12.3
+- Libraries in `requirements.txt`

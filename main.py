@@ -1,64 +1,42 @@
+import os
 import time
 import random
 import requests
 from bs4 import BeautifulSoup
-import telegram
 
-# --- CONFIG ---
-TELEGRAM_BOT_TOKEN = "7435299998:AAHZqIhZ5ftr_WfM4ToIYLnbl4cFdvp9hUU"
-TELEGRAM_CHANNEL = "@FlipkartAmazonAjioSale"
+# Telegram bot token & chat ID from environment variables
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-AMAZON_TAG = "techb0ad-21"
-FLIPKART_ID = "mayur0424"
-FLIPKART_TOKEN = "2b9ab31105104481b365fc65a3da821a"
+URL = "https://earnkaro.com/deals"
 
-EARNKARO_EMAIL = "mayur0424@gmail.com"
-EARNKARO_PASS = "M4yuur7!!5"
-EARNKARO_USERID = "4496103"
+def send_telegram_message(message):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"}
+    try:
+        requests.post(url, data=payload, timeout=10)
+    except Exception as e:
+        print(f"Error sending message: {e}")
 
-CATEGORIES = ["Electronics", "Fashion", "Mobiles & Tablets", "Home & Furniture", "TVs & Appliances"]
-
-bot = telegram.Bot(token=TELEGRAM_BOT_TOKEN)
-
-def scrape_earnkaro():
-    url = "https://earnkaro.com/top-selling-products/today-best-deals"
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text, "html.parser")
-    products = []
-    for a in soup.select("a"):
-        link = a.get("href")
-        if link and ("flipkart.com" in link or "amazon.in" in link):
-            products.append(link)
-    return list(set(products))
-
-def make_affiliate_link(url):
-    if "amazon.in" in url:
-        if "tag=" not in url:
-            if "?" in url:
-                url += f"&tag={AMAZON_TAG}"
-            else:
-                url += f"?tag={AMAZON_TAG}"
-    elif "flipkart.com" in url:
-        if "affid=" not in url:
-            if "?" in url:
-                url += f"&affid={FLIPKART_ID}"
-            else:
-                url += f"?affid={FLIPKART_ID}"
-    return url
-
-def post_to_telegram(message):
-    bot.send_message(chat_id=TELEGRAM_CHANNEL, text=message, disable_web_page_preview=False)
-
-def main():
-    while True:
-        links = scrape_earnkaro()
-        for link in links:
-            aff_link = make_affiliate_link(link)
-            post_to_telegram(aff_link)
-            time.sleep(random.randint(10, 20))  # Small gap between posts
+def scrape_deals():
+    try:
+        response = requests.get(URL, timeout=10)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
         
-        wait_minutes = random.randint(45, 90)
-        time.sleep(wait_minutes * 60)
+        deals = soup.find_all("div", class_="deal-card")[:5]  # Top 5 deals
+        for deal in deals:
+            title = deal.find("h3").get_text(strip=True) if deal.find("h3") else "No Title"
+            link = deal.find("a")["href"] if deal.find("a") else "#"
+            message = f"<b>{title}</b>\n{link}"
+            send_telegram_message(message)
+    except Exception as e:
+        print(f"Error scraping deals: {e}")
 
 if __name__ == "__main__":
-    main()
+    print("Bot started...")
+    while True:
+        scrape_deals()
+        wait_time = random.randint(1200, 3000)  # 20-50 min random interval
+        print(f"Waiting {wait_time//60} min before next run...")
+        time.sleep(wait_time)
