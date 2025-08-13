@@ -1,7 +1,18 @@
 services:
-  - type: worker
+  - type: web
     name: earnkaro-affiliate-bot
     env: python
     pythonVersion: 3.12.3
     buildCommand: pip install -r requirements.txt
     startCommand: python main.py
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: POSTS_PER_BATCH
+        value: "5"
+      - key: MIN_INTERVAL_MIN
+        value: "30"
+      - key: MAX_INTERVAL_MIN  
+        value: "75"
